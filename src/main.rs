@@ -4,6 +4,7 @@ use std::io::{Write, stdin, stdout};
 enum Token{
     Integer(i32),
     Plus,
+    Minus,
     EOF,
 }
 
@@ -13,6 +14,7 @@ impl Token{
         match(left, right) {
             (Integer(_), Integer(_)) => true,
             (Plus, Plus) => true,
+            (Minus, Minus) => true,
             (EOF, EOF) => true,
             (_,_) => false,
         }
@@ -21,55 +23,103 @@ impl Token{
 
 
 struct Interpreter {
-    text : String,
+    text : Vec<char>,
     pos : usize,
+    current_char : Option<char>,
     current_token: Token,
 }
 
 impl Interpreter {
 
     fn new(text: String) -> Interpreter {
+
         Interpreter {
-            text,
+            text: text.chars().collect(),
             pos : 0,
+            current_char : text.chars().nth(0),
             current_token : Token::EOF, 
         }
     }
 
     fn reload(&mut self, text: String) {
-        self.text = text;
+        self.text = text.chars().collect();
         self.pos = 0;
+        self.current_char = Some(self.text[self.pos]);
         self.current_token = Token::EOF; 
     }
 
-    fn get_next_token(&mut self) -> Result<Token, ()> {
-        let token : Token;
+    fn advance(&mut self) {
+        self.pos += 1;
         if self.pos > self.text.len() - 1 {
-            token = Token::EOF;
-            return Ok(token)
-        }
-
-        let current_char : char = self.text.as_bytes()[self.pos] as char;
-            
-        if current_char.is_ascii_digit() {
-            token = Token::Integer(current_char.to_digit(10).unwrap() as i32);
-            self.pos += 1;
-        }
-        else if current_char == '+' {
-            token = Token::Plus;
-            self.pos += 1;
+            self.current_char = None;
         }
         else {
-            return Err(())
+            self.current_char = Some(self.text[self.pos]);
         }
-
-        Ok(token)
-        
     }
+
+    fn skip_whitespace(&mut self) {
+        while let Some(ch) = self.current_char {
+            if ch.is_whitespace() {
+                self.advance()
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    fn integer(&mut self) -> i32 {
+        let mut result :i32 = 0;
+        while let Some(ch) = self.current_char {
+            if ch.is_digit(10) {
+                result += ch.to_digit(10).unwrap() as i32;
+                self.advance();
+            }
+            else {break;}
+        }
+        result
+    }
+
+    fn get_next_token(&mut self) -> Option<Token> {
+
+        let mut token : Option<Token> = None;
+      //  println!("{}", self.current_char.unwrap());
+        while let Some(ch) = self.current_char {
+            if ch.is_whitespace() {
+                self.skip_whitespace();
+                continue;
+            }
+            else if ch.is_digit(10) {
+                token = Some(Token::Integer(self.integer()));
+                break;
+            }
+            else if ch =='+' {
+                self.advance();
+                token = Some(Token::Plus);
+                break;
+            }
+            else if ch == '-' {
+                self.advance();
+                token = Some(Token::Minus);
+                break;
+            }
+            else {
+                panic!();
+            }
+
+        }
+        token
+    }
+
+            
+
 
     fn eat(&mut self, token: Token) {
         if Token::variant_eq(token, self.current_token) {
-            self.current_token = self.get_next_token().expect("Incorrect token");
+            if let Some(token) = self.get_next_token() {
+                self.current_token = token;
+            }
         }
         else {
             panic!("Wrong token")
