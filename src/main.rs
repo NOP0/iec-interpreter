@@ -1,6 +1,6 @@
 use std::io::{Write, stdin, stdout};
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone)]
 enum Token{
     Integer(i32),
     Plus,
@@ -9,7 +9,7 @@ enum Token{
 }
 
 impl Token{
-    fn variant_eq(left: Token, right: Token) -> bool {
+    fn variant_eq(left: Token, right: &Token) -> bool {
         use Token::*;
         match(left, right) {
             (Integer(_), Integer(_)) => true,
@@ -70,21 +70,20 @@ impl Interpreter {
     }
 
     fn integer(&mut self) -> i32 {
-        let mut result :i32 = 0;
+        let mut result = "".to_string();
         while let Some(ch) = self.current_char {
             if ch.is_digit(10) {
-                result += ch.to_digit(10).unwrap() as i32;
+                result.push(ch);
                 self.advance();
             }
             else {break;}
         }
-        result
+        result.parse().unwrap()
     }
 
     fn get_next_token(&mut self) -> Option<Token> {
 
         let mut token : Option<Token> = None;
-      //  println!("{}", self.current_char.unwrap());
         while let Some(ch) = self.current_char {
             if ch.is_whitespace() {
                 self.skip_whitespace();
@@ -116,7 +115,7 @@ impl Interpreter {
 
 
     fn eat(&mut self, token: Token) {
-        if Token::variant_eq(token, self.current_token) {
+        if Token::variant_eq(token, &self.current_token) {
             if let Some(token) = self.get_next_token() {
                 self.current_token = token;
             }
@@ -126,28 +125,40 @@ impl Interpreter {
         }
     }
 
+    fn term(&mut self) -> i32 {
+        let token = self.current_token.clone();
+        self.eat(Token::Integer(0));
+        match token {
+            Token::Integer(value) => {return value;},
+            _ => panic!(),
+        }
+        
+    }
+
     fn expr(&mut self) -> i32 {
+
+        let mut result;
 
         self.current_token = self.get_next_token().unwrap(); // Get first token
 
-        let left = self.current_token; // Save left operand
-        self.eat(Token::Integer(0)); // Should be integer
+        result = self.term();
 
-        let op = self.current_token; // Save operator
-        self.eat(Token::Plus); // Should be PLUS
-
-        let right = self.current_token; // Save right operand
-        self.eat(Token::Integer(0)); // Should be integer 
-
-        
-        if let (Token::Integer(left_value), Token::Integer(right_value)) = (left, right){
-            left_value + right_value
-        }  
-        else
-        {
-            panic!()
+        while 
+        (self.current_token == Token::Plus)
+        |(self.current_token == Token::Minus) {
+            match self.current_token {
+                Token::Plus => {
+                    self.eat(Token::Plus);
+                    result += self.term();
+                }
+                Token::Minus => {
+                    self.eat(Token::Minus);
+                    result -= self.term();
+                }
+                _ => panic!()
+            }
         }
-
+        result
     }
 }
 
