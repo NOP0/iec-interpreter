@@ -5,6 +5,8 @@ enum Token{
     Integer(i32),
     Plus,
     Minus,
+    Mul,
+    Div,
     EOF,
 }
 
@@ -15,6 +17,8 @@ impl Token{
             (Integer(_), Integer(_)) => true,
             (Plus, Plus) => true,
             (Minus, Minus) => true,
+            (Mul, Mul) => true,
+            (Div, Div) => true,
             (EOF, EOF) => true,
             (_,_) => false,
         }
@@ -22,30 +26,21 @@ impl Token{
 }
 
 
-struct Interpreter {
+
+struct Lexer {
     text : Vec<char>,
     pos : usize,
     current_char : Option<char>,
-    current_token: Token,
 }
 
-impl Interpreter {
+impl Lexer {
 
-    fn new(text: String) -> Interpreter {
-
-        Interpreter {
+    fn new(text: String) -> Lexer {
+        Lexer {
             text: text.chars().collect(),
             pos : 0,
             current_char : text.chars().nth(0),
-            current_token : Token::EOF, 
         }
-    }
-
-    fn reload(&mut self, text: String) {
-        self.text = text.chars().collect();
-        self.pos = 0;
-        self.current_char = Some(self.text[self.pos]);
-        self.current_token = Token::EOF; 
     }
 
     fn advance(&mut self) {
@@ -103,20 +98,49 @@ impl Interpreter {
                 token = Some(Token::Minus);
                 break;
             }
+
+            else if ch == '*' {
+                self.advance();
+                token = Some(Token::Mul);
+                break;
+            }
+
+            else if ch == '/' {
+                self.advance();
+                token = Some(Token::Div);
+                break;
+            }
             else {
                 panic!();
             }
-
         }
+
+        if self.current_char == None {
+            token = Some(Token::EOF);
+        }
+        
+
         token
     }
+}
 
-            
-
+struct Interpreter {
+    lexer : Lexer,
+    current_token: Token,
+}
+    
+impl Interpreter {
+    fn new(mut lexer: Lexer) -> Interpreter {
+        let current_token = lexer.get_next_token().expect("No first token");
+        Interpreter {
+            lexer,
+            current_token,
+        }
+    }
 
     fn eat(&mut self, token: Token) {
         if Token::variant_eq(token, &self.current_token) {
-            if let Some(token) = self.get_next_token() {
+            if let Some(token) = self.lexer.get_next_token() {
                 self.current_token = token;
             }
         }
@@ -125,21 +149,40 @@ impl Interpreter {
         }
     }
 
-    fn term(&mut self) -> i32 {
+    fn factor(&mut self) -> i32 {
         let token = self.current_token.clone();
         self.eat(Token::Integer(0));
         match token {
             Token::Integer(value) => {return value;},
             _ => panic!(),
         }
+    }
+
+    fn term(&mut self) -> i32 {
+        let mut result = self.factor();
+
+         while 
+        (self.current_token == Token::Mul)
+        |(self.current_token == Token::Div)  {
+            match self.current_token {
+                Token::Mul => {
+                    self.eat(Token::Mul);
+                    result = result*self.factor();
+                }
+                Token::Div => {
+                    self.eat(Token::Div);
+                    result = result/self.factor();
+                }
+                _ => panic!()
+            }
+        }
+        result
         
     }
 
     fn expr(&mut self) -> i32 {
 
         let mut result;
-
-        self.current_token = self.get_next_token().unwrap(); // Get first token
 
         result = self.term();
 
@@ -149,11 +192,11 @@ impl Interpreter {
             match self.current_token {
                 Token::Plus => {
                     self.eat(Token::Plus);
-                    result += self.term();
+                    result = result + self.term();
                 }
                 Token::Minus => {
                     self.eat(Token::Minus);
-                    result -= self.term();
+                    result = result - self.term();
                 }
                 _ => panic!()
             }
@@ -163,16 +206,15 @@ impl Interpreter {
 }
 
 fn main() -> std::io::Result<()>{
-    let mut text : String = "".to_string();
-    let mut interpreter = Interpreter::new(text.clone());
     loop{
+        let mut text : String = "".to_string();
         print!(">>");
         stdout().flush()?;
-        
         text.clear();
         stdin().read_line(&mut text)?;
         text = text.trim().to_string();
-        interpreter.reload(text.clone());
+        let lexer = Lexer::new(text.clone());
+        let mut interpreter = Interpreter::new(lexer);
         let result = interpreter.expr();
         println!("{}", result);
         
