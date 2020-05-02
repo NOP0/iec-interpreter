@@ -1,13 +1,14 @@
 use std::io::{Write, stdin, stdout};
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 enum Token{
     Integer(i32),
     Plus,
     Minus,
     Mul,
     Div,
-    EOF,
+    Rparen,
+    Lparen
 }
 
 impl Token{
@@ -19,7 +20,8 @@ impl Token{
             (Minus, Minus) => true,
             (Mul, Mul) => true,
             (Div, Div) => true,
-            (EOF, EOF) => true,
+            (Rparen, Rparen) => true,
+            (Lparen, Lparen) => true,
             (_,_) => false,
         }
     }
@@ -110,16 +112,20 @@ impl Lexer {
                 token = Some(Token::Div);
                 break;
             }
+            else if ch == '(' {
+                self.advance();
+                token = Some(Token::Lparen);
+                break;
+            }
+            else if ch == ')' {
+                self.advance();
+                token = Some(Token::Rparen);
+                break;
+            }
             else {
                 panic!();
             }
         }
-
-        if self.current_char == None {
-            token = Some(Token::EOF);
-        }
-        
-
         token
     }
 }
@@ -139,23 +145,36 @@ impl Interpreter {
     }
 
     fn eat(&mut self, token: Token) {
-        if Token::variant_eq(token, &self.current_token) {
+        if Token::variant_eq(token.clone(), &self.current_token) {
             if let Some(token) = self.lexer.get_next_token() {
                 self.current_token = token;
             }
         }
         else {
-            panic!("Wrong token")
+            panic!("Wrong token, got {:?}, expected {:?}", self.current_token, token);
         }
     }
 
     fn factor(&mut self) -> i32 {
+        let result : i32;
         let token = self.current_token.clone();
-        self.eat(Token::Integer(0));
+
         match token {
-            Token::Integer(value) => {return value;},
-            _ => panic!(),
-        }
+            Token::Integer(value) => 
+                {
+                    self.eat(Token::Integer(0));
+                    result = value;
+                }
+            Token::Lparen =>
+                {
+                    self.eat(Token::Lparen);
+                    result = self.expr();
+                    self.eat(Token::Rparen);
+                }
+            _ => panic!("Unexpected token in factor")
+
+    }
+        result
     }
 
     fn term(&mut self) -> i32 {
