@@ -1,19 +1,13 @@
 use std::io::{stdin, stdout, Write};
 
-mod lexer;
-mod token;
-mod parser;
 mod interpreter;
+mod lexer;
+mod parser;
+mod token;
 
+use interpreter::Interpreter;
 use lexer::Lexer;
 use parser::Parser;
-use interpreter::Interpreter;
-
-
-
-
-
-
 
 fn main() -> std::io::Result<()> {
     loop {
