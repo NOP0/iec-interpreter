@@ -1,12 +1,55 @@
 use crate::token::{Token};
 use crate::lexer::{Lexer};
 
+pub enum Node{
+    BinaryOp(BinaryOp),
+    Num(Num),
+}
 
-pub enum BinaryOp {
+pub enum BinaryOpType {
     Add,
-    Subract,
+    Subtract,
     Divide,
     Multiply,
+}
+
+pub struct BinaryOp {
+    token : Token,
+    pub left : Box<Node>,
+    pub right: Box<Node>,
+    pub op : BinaryOpType,
+}
+
+impl BinaryOp {
+    pub fn new(token: Token, left:Node, right:Node, op:BinaryOpType) -> BinaryOp {
+        BinaryOp {
+            token: token,
+            left : Box::new(left),
+            right: Box::new(right),
+            op,
+        }
+
+    }
+}
+
+pub struct Num {
+    token: Token,
+    pub value: i32,
+}
+
+impl Num {
+    pub fn new(token: Token) -> Num {
+        match token {
+            Token::Integer(value) => {
+                Num {
+                    token,
+                    value
+                }
+
+            }
+            _ => panic!()
+        }
+    }
 }
 
 pub struct Parser {
@@ -23,7 +66,7 @@ impl Parser {
         }
     }
 
-    pub fn parse(self) -> i32 {
+    pub fn parse(&mut self) -> Node {
         self.expr()
     }
 
@@ -42,14 +85,14 @@ impl Parser {
         }
     }
 
-    fn factor(&mut self) -> i32 {
-        let result: i32;
+    fn factor(&mut self) -> Node {
+        let result: Node;
         let token = self.current_token.clone();
 
         match token {
-            Token::Integer(value) => {
+            Token::Integer(_) => {
                 self.eat(Token::Integer(0));
-                result = value;
+                result = Node::Num(Num::new(token));
             }
             Token::Lparen => {
                 self.eat(Token::Lparen);
@@ -61,43 +104,44 @@ impl Parser {
         result
     }
 
-    fn term(&mut self) -> i32 {
-        let mut result = self.factor();
+    fn term(&mut self) -> Node {
+        let mut node = self.factor();
 
         while (self.current_token == Token::Mul) | (self.current_token == Token::Div) {
+        let token = self.current_token.clone();
             match self.current_token {
                 Token::Mul => {
                     self.eat(Token::Mul);
-                    result = result * self.factor();
+                    node = Node::BinaryOp(BinaryOp::new(token, node, self.factor(), BinaryOpType::Multiply));
                 }
                 Token::Div => {
                     self.eat(Token::Div);
-                    result = result / self.factor();
+                    node = Node::BinaryOp(BinaryOp::new(token, node, self.factor(), BinaryOpType::Divide));
                 }
                 _ => panic!(),
             }
+            
         }
-        result
+        node
     }
 
-    fn expr(&mut self) -> i32 {
-        let mut result;
-
-        result = self.term();
+    fn expr(&mut self) -> Node {
+        let mut node= self.term();
 
         while (self.current_token == Token::Plus) | (self.current_token == Token::Minus) {
+            let token = self.current_token.clone();
             match self.current_token {
                 Token::Plus => {
                     self.eat(Token::Plus);
-                    result = result + self.term();
+                    node = Node::BinaryOp(BinaryOp::new(token, node, self.term(), BinaryOpType::Add));
                 }
                 Token::Minus => {
                     self.eat(Token::Minus);
-                    result = result - self.term();
+                    node = Node::BinaryOp(BinaryOp::new(token, node, self.factor(), BinaryOpType::Subtract));
                 }
                 _ => panic!(),
             }
         }
-        result
+        node
     }
 }
