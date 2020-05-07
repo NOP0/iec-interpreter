@@ -1,4 +1,5 @@
-use crate::parser::{BinaryOp, BinaryOpType, Node, Num, Parser};
+use crate::parser::{UnaryOp, BinaryOp, Node, Num, Parser};
+use crate::token::{Token};
 pub struct Interpreter {
     parser: Parser,
 }
@@ -14,12 +15,20 @@ impl Interpreter {
         result
     }
 
+    fn visit_unary_op(&self, unary_op: UnaryOp) -> i32 {
+        match unary_op.op {
+            Token::Plus => {self.visit(*unary_op.expr)},
+            Token::Minus => {-self.visit(*unary_op.expr)},
+            _ => panic!("Incorrect token in visit_unary_op")
+        }
+    }
     fn visit_binary_op(&self, binary_op: BinaryOp) -> i32 {
         match binary_op.op {
-            BinaryOpType::Add => self.visit(*binary_op.left) + self.visit(*binary_op.right),
-            BinaryOpType::Subtract => self.visit(*binary_op.left) - self.visit(*binary_op.right),
-            BinaryOpType::Multiply => self.visit(*binary_op.left) * self.visit(*binary_op.right),
-            BinaryOpType::Divide => self.visit(*binary_op.left) / self.visit(*binary_op.right),
+            Token::Plus => self.visit(*binary_op.left) + self.visit(*binary_op.right),
+            Token::Minus => self.visit(*binary_op.left) - self.visit(*binary_op.right),
+            Token::Mul => self.visit(*binary_op.left) * self.visit(*binary_op.right),
+            Token::Div => self.visit(*binary_op.left) / self.visit(*binary_op.right),
+            _ => panic!("Incorrect token in visit_binary_op")
         }
     }
 
@@ -29,6 +38,7 @@ impl Interpreter {
 
     fn visit(&self, node: Node) -> i32 {
         match node {
+            Node::UnaryOp(unary_op) => self.visit_unary_op(unary_op),
             Node::BinaryOp(binary_op) => self.visit_binary_op(binary_op),
             Node::Num(num) => self.visit_num(num),
         }

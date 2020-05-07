@@ -7,6 +7,11 @@ pub enum Token {
     Div,
     Rparen,
     Lparen,
+    Begin,
+    End,
+    Assign,
+    Semicolon,
+    Id(String),
 }
 
 impl Token {

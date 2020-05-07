@@ -2,31 +2,40 @@ use crate::lexer::Lexer;
 use crate::token::Token;
 
 pub enum Node {
+    UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
     Num(Num),
 }
 
-pub enum BinaryOpType {
-    Add,
-    Subtract,
-    Divide,
-    Multiply,
+pub struct UnaryOp {
+    token: Token,
+    pub expr: Box<Node>,
+    pub op: Token,
 }
 
+impl UnaryOp {
+    pub fn new(op: Token, expr: Node) -> UnaryOp {
+        UnaryOp {
+            token: op.clone(),
+            expr: Box::new(expr),
+            op: op,
+        }
+    }
+}
 pub struct BinaryOp {
     token: Token,
     pub left: Box<Node>,
     pub right: Box<Node>,
-    pub op: BinaryOpType,
+    pub op: Token,
 }
 
 impl BinaryOp {
-    pub fn new(token: Token, left: Node, right: Node, op: BinaryOpType) -> BinaryOp {
+    pub fn new(left: Node, right: Node, op: Token) -> BinaryOp {
         BinaryOp {
-            token: token,
+            token: op.clone(),
             left: Box::new(left),
             right: Box::new(right),
-            op,
+            op: op,
         }
     }
 }
@@ -77,46 +86,51 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Node {
-        let result: Node;
-        let token = self.current_token.clone();
+        let node: Node;
 
-        match token {
-            Token::Integer(_) => {
+        match self.current_token {
+            Token::Plus => {
+                self.eat(Token::Plus);
+                node = Node::UnaryOp(UnaryOp::new(Token::Plus, self.factor()));
+            }
+            Token::Minus => {
+                self.eat(Token::Minus);
+                node = Node::UnaryOp(UnaryOp::new(Token::Minus, self.factor()));
+
+            }
+            Token::Integer(value) => {
                 self.eat(Token::Integer(0));
-                result = Node::Num(Num::new(token));
+                node = Node::Num(Num::new(Token::Integer(value)));
             }
             Token::Lparen => {
                 self.eat(Token::Lparen);
-                result = self.expr();
+                node = self.expr();
                 self.eat(Token::Rparen);
             }
             _ => panic!("Unexpected token in factor"),
         }
-        result
+        node
     }
 
     fn term(&mut self) -> Node {
         let mut node = self.factor();
 
         while (self.current_token == Token::Mul) | (self.current_token == Token::Div) {
-            let token = self.current_token.clone();
             match self.current_token {
                 Token::Mul => {
                     self.eat(Token::Mul);
                     node = Node::BinaryOp(BinaryOp::new(
-                        token,
                         node,
                         self.factor(),
-                        BinaryOpType::Multiply,
+                        Token::Mul,
                     ));
                 }
                 Token::Div => {
                     self.eat(Token::Div);
                     node = Node::BinaryOp(BinaryOp::new(
-                        token,
                         node,
                         self.factor(),
-                        BinaryOpType::Divide,
+                        Token::Div,
                     ));
                 }
                 _ => panic!(),
@@ -129,20 +143,18 @@ impl Parser {
         let mut node = self.term();
 
         while (self.current_token == Token::Plus) | (self.current_token == Token::Minus) {
-            let token = self.current_token.clone();
             match self.current_token {
                 Token::Plus => {
                     self.eat(Token::Plus);
                     node =
-                        Node::BinaryOp(BinaryOp::new(token, node, self.term(), BinaryOpType::Add));
+                        Node::BinaryOp(BinaryOp::new(node, self.term(), Token::Plus));
                 }
                 Token::Minus => {
                     self.eat(Token::Minus);
                     node = Node::BinaryOp(BinaryOp::new(
-                        token,
                         node,
                         self.factor(),
-                        BinaryOpType::Subtract,
+                        Token::Minus,
                     ));
                 }
                 _ => panic!(),
