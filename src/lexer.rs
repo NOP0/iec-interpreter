@@ -4,16 +4,14 @@ pub struct Lexer {
     text: Vec<char>,
     pos: usize,
     current_char: Option<char>,
-    RESERVED_KEYWORDS:  HashMap<String, Token>,
+    RESERVED_KEYWORDS: HashMap<String, Token>,
 }
-
 
 impl Lexer {
     pub fn new(text: String) -> Lexer {
-
-        let mut reserved_keywords :HashMap<String, Token> = HashMap::new();
-        reserved_keywords.insert("BEGIN".to_string(),Token::Begin);
-        reserved_keywords.insert("END".to_string(),Token::End);
+        let mut reserved_keywords: HashMap<String, Token> = HashMap::new();
+        reserved_keywords.insert("BEGIN".to_string(), Token::Begin);
+        reserved_keywords.insert("END".to_string(), Token::End);
 
         Lexer {
             text: text.chars().collect(),
@@ -29,16 +27,14 @@ impl Lexer {
             if ch.is_alphanumeric() {
                 result.push(ch);
                 self.advance();
-            }
-            else {
+            } else {
                 break;
             }
         }
 
         if self.RESERVED_KEYWORDS.contains_key(&result) {
             self.RESERVED_KEYWORDS.get(&result).unwrap().clone()
-        }
-        else {
+        } else {
             Token::Id(result)
         }
     }
@@ -78,9 +74,8 @@ impl Lexer {
     fn peek(&mut self) -> Option<char> {
         if self.pos + 1 > self.text.len() {
             None
-        }
-        else {
-            Some(self.text[self.pos+1])
+        } else {
+            Some(self.text[self.pos + 1])
         }
     }
 
@@ -89,8 +84,7 @@ impl Lexer {
         while let Some(ch) = self.current_char {
             if ch.is_alphabetic() {
                 token = Some(self.id());
-            }
-            else if ch.is_whitespace() {
+            } else if ch.is_whitespace() {
                 self.skip_whitespace();
                 continue;
             } else if ch.is_digit(10) {

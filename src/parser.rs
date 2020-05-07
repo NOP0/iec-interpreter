@@ -96,7 +96,6 @@ impl Parser {
             Token::Minus => {
                 self.eat(Token::Minus);
                 node = Node::UnaryOp(UnaryOp::new(Token::Minus, self.factor()));
-
             }
             Token::Integer(value) => {
                 self.eat(Token::Integer(0));
@@ -119,19 +118,11 @@ impl Parser {
             match self.current_token {
                 Token::Mul => {
                     self.eat(Token::Mul);
-                    node = Node::BinaryOp(BinaryOp::new(
-                        node,
-                        self.factor(),
-                        Token::Mul,
-                    ));
+                    node = Node::BinaryOp(BinaryOp::new(node, self.factor(), Token::Mul));
                 }
                 Token::Div => {
                     self.eat(Token::Div);
-                    node = Node::BinaryOp(BinaryOp::new(
-                        node,
-                        self.factor(),
-                        Token::Div,
-                    ));
+                    node = Node::BinaryOp(BinaryOp::new(node, self.factor(), Token::Div));
                 }
                 _ => panic!(),
             }
@@ -146,16 +137,11 @@ impl Parser {
             match self.current_token {
                 Token::Plus => {
                     self.eat(Token::Plus);
-                    node =
-                        Node::BinaryOp(BinaryOp::new(node, self.term(), Token::Plus));
+                    node = Node::BinaryOp(BinaryOp::new(node, self.term(), Token::Plus));
                 }
                 Token::Minus => {
                     self.eat(Token::Minus);
-                    node = Node::BinaryOp(BinaryOp::new(
-                        node,
-                        self.factor(),
-                        Token::Minus,
-                    ));
+                    node = Node::BinaryOp(BinaryOp::new(node, self.factor(), Token::Minus));
                 }
                 _ => panic!(),
             }
