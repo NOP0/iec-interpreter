@@ -7,6 +7,23 @@ pub enum Node {
     Num(Num),
 }
 
+pub struct Assignment {
+    token: Token,
+    pub left: Box<Node>,
+    pub right: Box<Node>,
+    pub op: Token,
+}
+
+impl Assignment {
+    pub fn new(op: Token, left: Node, right: Node) -> Assignment {
+        Assignment {
+            token: op.clone(),
+            left: Box::new(left),
+            right: Box::new(right),
+            op: op,
+        }
+    }
+}
 pub struct UnaryOp {
     token: Token,
     pub expr: Box<Node>,

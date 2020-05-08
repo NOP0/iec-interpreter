@@ -84,6 +84,15 @@ impl Lexer {
         while let Some(ch) = self.current_char {
             if ch.is_alphabetic() {
                 token = Some(self.id());
+            } else if ch == ':' && self.peek() == Some('=') {
+                self.advance();
+                self.advance();
+                token = Some(Token::Assign);
+                break;
+            } else if ch == ';' {
+                self.advance();
+                token = Some(Token::Semicolon);
+                break;
             } else if ch.is_whitespace() {
                 self.skip_whitespace();
                 continue;
