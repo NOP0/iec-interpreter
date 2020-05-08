@@ -10,8 +10,8 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(text: String) -> Lexer {
         let mut reserved_keywords: HashMap<String, Token> = HashMap::new();
-        reserved_keywords.insert("BEGIN".to_string(), Token::Begin);
-        reserved_keywords.insert("END".to_string(), Token::End);
+        reserved_keywords.insert("PROGRAM".to_string(), Token::Program);
+        reserved_keywords.insert("END_PROGRAM".to_string(), Token::End_Program);
 
         Lexer {
             text: text.chars().collect(),

@@ -7,11 +7,12 @@ pub enum Token {
     Div,
     Rparen,
     Lparen,
-    Begin,
-    End,
+    Program,
+    End_Program,
     Assign,
     Semicolon,
     Id(String),
+    NoOp,
 }
 
 impl Token {
@@ -25,6 +26,11 @@ impl Token {
             (Div, Div) => true,
             (Rparen, Rparen) => true,
             (Lparen, Lparen) => true,
+            (Program, Program) => true,
+            (End_Program, End_Program) => true,
+            (Assign, Assign) => true,
+            (Semicolon, Semicolon) => true,
+            (Id(_), Id(_)) => true,
             (_, _) => false,
         }
     }

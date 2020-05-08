@@ -5,6 +5,48 @@ pub enum Node {
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
     Num(Num),
+    Assignment(Assignment),
+    Variable(Variable),
+    Statement(Statement),
+    CompoundStatement(CompoundStatement),
+    NoOp,
+}
+
+pub enum Statement {
+    NoOp,
+    Assignment(Assignment),
+}
+
+pub struct CompoundStatement {
+    statements: Vec<Node>,
+}
+
+impl CompoundStatement {
+    pub fn new() -> CompoundStatement {
+        CompoundStatement {
+            statements: Vec::new(),
+        }
+    }
+}
+
+pub struct Variable {
+    token: Token,
+    id: String,
+}
+
+impl Variable {
+    pub fn new (token: Token) -> Variable {
+        match token {
+            Token::Id(id) => {
+                Variable {
+                    token: token.clone(),
+                    id: id, 
+                }
+
+            }
+            _ => panic!("Wrong token in Variable constructor")
+        }
+    }
 }
 
 pub struct Assignment {
@@ -163,6 +205,68 @@ impl Parser {
                 _ => panic!(),
             }
         }
+        node
+    }
+    fn no_op(&mut self) -> Node {
+        self.eat(Token::NoOp);
+        Node::NoOp
+    }
+
+    fn variable(&mut self) -> Node {
+        let node = Node::Variable(Variable::new(self.current_token.clone()));
+        node
+    }
+    fn assignment(&mut self) -> Node {
+        let left = self.variable();
+        let token = self.current_token.clone();
+        self.eat(Token::Assign);
+        let right = self.expr();
+        Node::Assignment(Assignment::new(token, left, right))
+    }
+
+    fn statement(&mut self) -> Node {
+        let node: Node;
+        match self.current_token {
+            Token::Program => {
+                node = self.compound_statement();
+            }
+        
+                Token::Id(_) => {
+                node = self.assignment();
+            }
+                _ => {
+            node = self.no_op();
+        }
+        }
+        node
+    }
+
+    fn statement_list(&mut self) -> Vec<Node> {
+        let mut list : Vec<Node> = Vec::new();
+        list.push(self.statement());
+
+        while self.current_token == Token::Semicolon {
+            self.eat(Token::Semicolon);
+            list.push(self.statement());
+        }
+        list
+    }
+
+     fn compound_statement(&mut self) -> Node {
+        let nodes = self.statement_list();
+        let mut compound_statement = CompoundStatement::new();
+        for node in nodes {
+            compound_statement.statements.push(node);
+        }
+
+        let root_node = Node::CompoundStatement(compound_statement);
+        root_node
+    }
+   
+    fn program(&mut self) -> Node {
+        self.eat(Token::Program);
+        let node = self.compound_statement();
+        self.eat(Token::End_Program);
         node
     }
 }
