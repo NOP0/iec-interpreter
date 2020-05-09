@@ -1,46 +1,112 @@
-use crate::parser::{BinaryOp, Node, Num, Parser, UnaryOp};
+use crate::parser::{Assignment, BinaryOp, Node, Num, Parser, Statement, CompoundStatement, UnaryOp, Variable};
 use crate::token::Token;
+
+pub fn walk_unary_op<V: Visitor + ?Sized>(visitor: &mut V, unary_op: &UnaryOp) {
+    visitor.visit(&unary_op.expr);
+}
+
+pub fn walk_binary_op<V: Visitor + ?Sized>(visitor: &mut V, binary_op: &BinaryOp) {
+    visitor.visit(&binary_op.left);
+    visitor.visit(&binary_op.right);
+}
+
+pub fn walk_assignment<V: Visitor + ?Sized>(visitor: &mut V, assignment: &Assignment) {
+    visitor.visit(&assignment.left);
+    visitor.visit(&assignment.right);
+}
+
+pub fn walk_statement<V: Visitor + ?Sized>(visitor: &mut V, statement: &Statement) {
+    match statement {
+        Statement::NoOp => {}
+        Statement::Assignment(assignment) => {
+            visitor.visit_assignment(assignment);
+        }
+    }
+}
+
+pub trait Visitor {
+    fn visit(&mut self, node: &Node) {
+        match node {
+            Node::UnaryOp(unary_op) => self.visit_unary_op(&unary_op),
+            Node::BinaryOp(binary_op) => self.visit_binary_op(&binary_op),
+            Node::Num(num) => self.visit_num(&num),
+            Node::Assignment(assignment) => self.visit_assignment(&assignment),
+            Node::Variable(variable) => self.visit_variable(&variable),
+            Node::Statement(statement) => self.visit_statement(&statement),
+            Node::CompoundStatement(compound_statement) => self.visit_compound_statement(&compound_statement),
+            Node::NoOp => {}
+        }
+    }
+
+    fn visit_unary_op(&mut self, unary_op: &UnaryOp) {
+        walk_unary_op(self, unary_op);
+    }
+
+    fn visit_binary_op(&mut self, binary_op: &BinaryOp) {
+        walk_binary_op(self, binary_op);
+    }
+
+    fn visit_assignment(&mut self, assignment: &Assignment) {
+        walk_assignment(self, assignment);
+    }
+
+    fn visit_statement(&mut self, statement: &Statement) {
+        walk_statement(self, statement);
+    }
+
+    fn visit_num(&mut self, num: &Num) {}
+
+    fn visit_variable(&mut self, variable: &Variable) {}
+
+    fn visit_compound_statement(&mut self, compound_statement: &CompoundStatement) {}
+}
 pub struct Interpreter {
     parser: Parser,
+    object: i32,
 }
 
 impl Interpreter {
     pub fn new(parser: Parser) -> Interpreter {
-        Interpreter { parser }
+        Interpreter { parser, object:0 }
     }
 
-    pub fn interpret(&mut self) -> i32 {
+    pub fn interpret(&mut self){
         let tree = self.parser.parse();
-        let result = self.visit(tree);
-        result
+        self.visit(&tree);
+        println!("{}",self.object);
     }
+}
 
-    fn visit_unary_op(&self, unary_op: UnaryOp) -> i32 {
+impl Visitor for Interpreter {
+
+    fn visit_unary_op(&mut self, unary_op: &UnaryOp){
+        self.visit(&unary_op.expr);
         match unary_op.op {
-            Token::Plus => self.visit(*unary_op.expr),
-            Token::Minus => -self.visit(*unary_op.expr),
+            Token::Plus => {},
+            Token::Minus => self.object *= -1,
             _ => panic!("Incorrect token in visit_unary_op"),
         }
     }
-    fn visit_binary_op(&self, binary_op: BinaryOp) -> i32 {
+    fn visit_binary_op(&mut self, binary_op: &BinaryOp){
+        let lhs : i32;
+        let rhs : i32;
+        self.visit(&binary_op.left);
+        lhs = self.object;
+        self.visit(&binary_op.right);
+        rhs = self.object;
+
         match binary_op.op {
-            Token::Plus => self.visit(*binary_op.left) + self.visit(*binary_op.right),
-            Token::Minus => self.visit(*binary_op.left) - self.visit(*binary_op.right),
-            Token::Mul => self.visit(*binary_op.left) * self.visit(*binary_op.right),
-            Token::Div => self.visit(*binary_op.left) / self.visit(*binary_op.right),
+            Token::Plus => self.object = lhs + rhs,
+            Token::Minus => self.object = lhs -rhs,
+            Token::Mul => self.object = lhs*rhs,
+            Token::Div => self.object = lhs/rhs,
             _ => panic!("Incorrect token in visit_binary_op"),
         }
     }
 
-    fn visit_num(&self, num: Num) -> i32 {
-        num.value
+    fn visit_num(&mut self, num: &Num) {
+        self.object = num.value;
     }
 
-    fn visit(&self, node: Node) -> i32 {
-        match node {
-            Node::UnaryOp(unary_op) => self.visit_unary_op(unary_op),
-            Node::BinaryOp(binary_op) => self.visit_binary_op(binary_op),
-            Node::Num(num) => self.visit_num(num),
-        }
-    }
+
 }

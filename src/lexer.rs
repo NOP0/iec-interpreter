@@ -4,20 +4,20 @@ pub struct Lexer {
     text: Vec<char>,
     pos: usize,
     current_char: Option<char>,
-    RESERVED_KEYWORDS: HashMap<String, Token>,
+    reserved_keywords: HashMap<String, Token>,
 }
 
 impl Lexer {
     pub fn new(text: String) -> Lexer {
         let mut reserved_keywords: HashMap<String, Token> = HashMap::new();
         reserved_keywords.insert("PROGRAM".to_string(), Token::Program);
-        reserved_keywords.insert("END_PROGRAM".to_string(), Token::End_Program);
+        reserved_keywords.insert("END_PROGRAM".to_string(), Token::EndProgram);
 
         Lexer {
             text: text.chars().collect(),
             pos: 0,
             current_char: text.chars().nth(0),
-            RESERVED_KEYWORDS: reserved_keywords,
+            reserved_keywords,
         }
     }
 
@@ -32,8 +32,8 @@ impl Lexer {
             }
         }
 
-        if self.RESERVED_KEYWORDS.contains_key(&result) {
-            self.RESERVED_KEYWORDS.get(&result).unwrap().clone()
+        if self.reserved_keywords.contains_key(&result) {
+            self.reserved_keywords.get(&result).unwrap().clone()
         } else {
             Token::Id(result)
         }

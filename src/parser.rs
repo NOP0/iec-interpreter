@@ -35,16 +35,13 @@ pub struct Variable {
 }
 
 impl Variable {
-    pub fn new (token: Token) -> Variable {
-        match token {
-            Token::Id(id) => {
-                Variable {
-                    token: token.clone(),
-                    id: id, 
-                }
-
-            }
-            _ => panic!("Wrong token in Variable constructor")
+    pub fn new(token: Token) -> Variable {
+        match token.clone() {
+            Token::Id(id) => Variable {
+                token: token,
+                id: id,
+            },
+            _ => panic!("Wrong token in Variable constructor"),
         }
     }
 }
@@ -230,19 +227,19 @@ impl Parser {
             Token::Program => {
                 node = self.compound_statement();
             }
-        
-                Token::Id(_) => {
+
+            Token::Id(_) => {
                 node = self.assignment();
             }
-                _ => {
-            node = self.no_op();
-        }
+            _ => {
+                node = self.no_op();
+            }
         }
         node
     }
 
     fn statement_list(&mut self) -> Vec<Node> {
-        let mut list : Vec<Node> = Vec::new();
+        let mut list: Vec<Node> = Vec::new();
         list.push(self.statement());
 
         while self.current_token == Token::Semicolon {
@@ -252,7 +249,7 @@ impl Parser {
         list
     }
 
-     fn compound_statement(&mut self) -> Node {
+    fn compound_statement(&mut self) -> Node {
         let nodes = self.statement_list();
         let mut compound_statement = CompoundStatement::new();
         for node in nodes {
@@ -262,11 +259,11 @@ impl Parser {
         let root_node = Node::CompoundStatement(compound_statement);
         root_node
     }
-   
+
     fn program(&mut self) -> Node {
         self.eat(Token::Program);
         let node = self.compound_statement();
-        self.eat(Token::End_Program);
+        self.eat(Token::EndProgram);
         node
     }
 }

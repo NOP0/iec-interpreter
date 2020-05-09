@@ -20,7 +20,6 @@ fn main() -> std::io::Result<()> {
         let lexer = Lexer::new(text.clone());
         let parser = Parser::new(lexer);
         let mut interpreter = Interpreter::new(parser);
-        let result = interpreter.interpret();
-        println!("{}", result);
+        interpreter.interpret();
     }
 }
