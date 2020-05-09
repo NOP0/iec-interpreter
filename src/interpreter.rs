@@ -1,6 +1,10 @@
-use crate::parser::{
-    Assignment, BinaryOp, CompoundStatement, Node, Num, Parser, Statement, UnaryOp, Variable,
+use std::collections::HashMap;
+
+use crate::ast::{
+    Assignment, BinaryOp, CompoundStatement, Node, Num, Statement, UnaryOp, Variable,
 };
+
+use crate::parser::Parser;
 use crate::token::Token;
 
 pub fn walk_unary_op<V: Visitor + ?Sized>(visitor: &mut V, unary_op: &UnaryOp) {
@@ -62,16 +66,34 @@ pub trait Visitor {
 
     fn visit_variable(&mut self, variable: &Variable) {}
 
-    fn visit_compound_statement(&mut self, compound_statement: &CompoundStatement) {}
+    fn visit_compound_statement(&mut self, compound_statement: &CompoundStatement) {
+        for statement in &compound_statement.statements {
+            match statement {
+                Node::Statement(statement) => {
+                    self.visit_statement(&statement);
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
+enum Object {
+    Integer(i32),
 }
 pub struct Interpreter {
     parser: Parser,
     object: i32,
+    global_scope: HashMap<String, i32>,
 }
 
 impl Interpreter {
     pub fn new(parser: Parser) -> Interpreter {
-        Interpreter { parser, object: 0 }
+        Interpreter {
+            parser,
+            object: 0,
+            global_scope: HashMap::new(),
+        }
     }
 
     pub fn interpret(&mut self) {

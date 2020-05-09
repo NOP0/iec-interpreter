@@ -1,5 +1,6 @@
 use std::io::{stdin, stdout, Write};
 
+mod ast;
 mod interpreter;
 mod lexer;
 mod parser;

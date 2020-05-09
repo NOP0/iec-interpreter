@@ -1,3 +1,4 @@
+use crate::token::Token;
 pub enum Node {
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
@@ -15,7 +16,7 @@ pub enum Statement {
 }
 
 pub struct CompoundStatement {
-    statements: Vec<Node>,
+    pub statements: Vec<Node>,
 }
 
 impl CompoundStatement {
