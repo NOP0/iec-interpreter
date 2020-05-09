@@ -1,4 +1,6 @@
-use crate::parser::{Assignment, BinaryOp, Node, Num, Parser, Statement, CompoundStatement, UnaryOp, Variable};
+use crate::parser::{
+    Assignment, BinaryOp, CompoundStatement, Node, Num, Parser, Statement, UnaryOp, Variable,
+};
 use crate::token::Token;
 
 pub fn walk_unary_op<V: Visitor + ?Sized>(visitor: &mut V, unary_op: &UnaryOp) {
@@ -33,7 +35,9 @@ pub trait Visitor {
             Node::Assignment(assignment) => self.visit_assignment(&assignment),
             Node::Variable(variable) => self.visit_variable(&variable),
             Node::Statement(statement) => self.visit_statement(&statement),
-            Node::CompoundStatement(compound_statement) => self.visit_compound_statement(&compound_statement),
+            Node::CompoundStatement(compound_statement) => {
+                self.visit_compound_statement(&compound_statement)
+            }
             Node::NoOp => {}
         }
     }
@@ -67,29 +71,28 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new(parser: Parser) -> Interpreter {
-        Interpreter { parser, object:0 }
+        Interpreter { parser, object: 0 }
     }
 
-    pub fn interpret(&mut self){
+    pub fn interpret(&mut self) {
         let tree = self.parser.parse();
         self.visit(&tree);
-        println!("{}",self.object);
+        println!("{}", self.object);
     }
 }
 
 impl Visitor for Interpreter {
-
-    fn visit_unary_op(&mut self, unary_op: &UnaryOp){
+    fn visit_unary_op(&mut self, unary_op: &UnaryOp) {
         self.visit(&unary_op.expr);
         match unary_op.op {
-            Token::Plus => {},
+            Token::Plus => {}
             Token::Minus => self.object *= -1,
             _ => panic!("Incorrect token in visit_unary_op"),
         }
     }
-    fn visit_binary_op(&mut self, binary_op: &BinaryOp){
-        let lhs : i32;
-        let rhs : i32;
+    fn visit_binary_op(&mut self, binary_op: &BinaryOp) {
+        let lhs: i32;
+        let rhs: i32;
         self.visit(&binary_op.left);
         lhs = self.object;
         self.visit(&binary_op.right);
@@ -97,9 +100,9 @@ impl Visitor for Interpreter {
 
         match binary_op.op {
             Token::Plus => self.object = lhs + rhs,
-            Token::Minus => self.object = lhs -rhs,
-            Token::Mul => self.object = lhs*rhs,
-            Token::Div => self.object = lhs/rhs,
+            Token::Minus => self.object = lhs - rhs,
+            Token::Mul => self.object = lhs * rhs,
+            Token::Div => self.object = lhs / rhs,
             _ => panic!("Incorrect token in visit_binary_op"),
         }
     }
@@ -107,6 +110,4 @@ impl Visitor for Interpreter {
     fn visit_num(&mut self, num: &Num) {
         self.object = num.value;
     }
-
-
 }
