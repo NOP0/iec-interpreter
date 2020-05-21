@@ -56,6 +56,10 @@ impl Parser {
                 node = self.expr();
                 self.eat(Token::Rparen);
             }
+            Token::Id(_) => {
+                node = self.variable();
+                self.eat(Token::Id("".to_string()));
+            }
             _ => panic!("Unexpected token in factor"),
         }
         node

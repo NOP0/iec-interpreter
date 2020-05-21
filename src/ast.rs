@@ -29,7 +29,7 @@ impl CompoundStatement {
 
 pub struct Variable {
     token: Token,
-    id: String,
+    pub id: String,
 }
 
 impl Variable {

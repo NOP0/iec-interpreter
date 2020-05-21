@@ -132,4 +132,23 @@ impl Visitor for Interpreter {
     fn visit_num(&mut self, num: &Num) {
         self.object = num.value;
     }
+
+    fn visit_assignment(&mut self, assignment: &Assignment) {
+        self.visit(&assignment.right);
+        match &*assignment.left {
+            Node::Variable(variable) => {
+                self.global_scope.insert(variable.id.clone(), self.object);
+            }
+
+            _ => panic!("Incorrect node in visit_assignment"),
+        }
+    }
+
+    fn visit_variable(&mut self, variable: &Variable) {
+        if let Some(value) = self.global_scope.get(&variable.id) {
+            self.object = *value;
+        } else {
+            panic!("Variable id not in scope");
+        }
+    }
 }
