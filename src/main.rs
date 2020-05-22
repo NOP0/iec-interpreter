@@ -24,3 +24,13 @@ fn main() -> std::io::Result<()> {
         interpreter.interpret();
     }
 }
+
+
+#[test]
+fn interpret_addition() {
+    let text = "1+2".to_string();
+    let lexer = Lexer::new(text);
+    let parser = Parser::new(lexer);
+    let mut interpreter = Interpreter::new(parser);
+    interpreter.interpret();
+}
