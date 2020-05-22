@@ -1,4 +1,5 @@
 use crate::token::Token;
+#[derive(Debug, PartialEq)]
 pub enum Node {
     UnaryOp(UnaryOp),
     BinaryOp(BinaryOp),
@@ -10,11 +11,13 @@ pub enum Node {
     NoOp,
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Statement {
     NoOp,
     Assignment(Assignment),
 }
 
+#[derive(Debug, PartialEq)]
 pub struct CompoundStatement {
     pub statements: Vec<Node>,
 }
@@ -27,6 +30,7 @@ impl CompoundStatement {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Variable {
     token: Token,
     pub id: String,
@@ -44,6 +48,7 @@ impl Variable {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Assignment {
     token: Token,
     pub left: Box<Node>,
@@ -61,6 +66,7 @@ impl Assignment {
         }
     }
 }
+#[derive(Debug, PartialEq)]
 pub struct UnaryOp {
     token: Token,
     pub expr: Box<Node>,
@@ -76,6 +82,7 @@ impl UnaryOp {
         }
     }
 }
+#[derive(Debug, PartialEq)]
 pub struct BinaryOp {
     token: Token,
     pub left: Box<Node>,
@@ -94,6 +101,7 @@ impl BinaryOp {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Num {
     token: Token,
     pub value: i32,
