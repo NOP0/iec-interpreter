@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+//use std::io::prelude::*;
+//use std::io::{Write};
 
 use crate::ast::{
     Assignment, BinaryOp, CompoundStatement, Node, Num, Statement, UnaryOp, Variable,
@@ -62,8 +64,12 @@ pub trait Visitor {
         walk_statement(self, statement);
     }
 
-    fn visit_num(&mut self, num: &Num) {}
+    #[allow(unused_variables)]
+    fn visit_num(&mut self, num: &Num) {
 
+    }
+
+    #[allow(unused_variables)]
     fn visit_variable(&mut self, variable: &Variable) {}
 
     fn visit_compound_statement(&mut self, compound_statement: &CompoundStatement) {
@@ -99,7 +105,17 @@ impl Interpreter {
     pub fn interpret(&mut self) {
         let tree = self.parser.parse();
         self.visit(&tree);
-        println!("{}", self.object);
+
+        self.interpreter_writer(&format!("{}", self.object), &mut std::io::stdout());
+    }
+
+    pub fn interpreter_writer(&mut self, content: &str, mut writer: impl std::io::Write) {
+        
+        match writeln!(&mut writer, "{}", content) {
+            Ok(_) => {},
+            Err(error) => {panic!("Error in writeln! interpreter_writer: {}", error)}
+        }
+
     }
 }
 
@@ -152,3 +168,4 @@ impl Visitor for Interpreter {
         }
     }
 }
+
