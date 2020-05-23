@@ -166,12 +166,7 @@ impl Parser {
     }
 }
 
-
-#[test] 
-fn parse_program() {
-
-}
-
+#[test]
 #[test]
 fn parse_addition() {
     let text = "1+2".to_string();
@@ -181,6 +176,5 @@ fn parse_addition() {
         assert_eq!(*binary_op.left, Node::Num(Num::new(Token::Integer(1))));
         assert_eq!(*binary_op.right, Node::Num(Num::new(Token::Integer(2))));
         assert_eq!(binary_op.op, Token::Plus);
-    }    
+    }
 }
-    

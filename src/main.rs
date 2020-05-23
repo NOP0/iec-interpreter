@@ -25,12 +25,16 @@ fn main() -> std::io::Result<()> {
     }
 }
 
-
 #[test]
 fn interpret_addition() {
     let text = "1+2".to_string();
     let lexer = Lexer::new(text);
     let parser = Parser::new(lexer);
     let mut interpreter = Interpreter::new(parser);
-    interpreter.interpret();
+
+    let mut buffer: Vec<u8> = Vec::new();
+
+    interpreter.interpreter_writer(&mut buffer);
+
+    assert_eq!(buffer[0], b'3');
 }

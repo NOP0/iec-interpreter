@@ -65,9 +65,7 @@ pub trait Visitor {
     }
 
     #[allow(unused_variables)]
-    fn visit_num(&mut self, num: &Num) {
-
-    }
+    fn visit_num(&mut self, num: &Num) {}
 
     #[allow(unused_variables)]
     fn visit_variable(&mut self, variable: &Variable) {}
@@ -103,19 +101,17 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self) {
+        self.interpreter_writer(&mut std::io::stdout());
+    }
+
+    pub fn interpreter_writer(&mut self, mut writer: &mut impl std::io::Write) {
         let tree = self.parser.parse();
         self.visit(&tree);
 
-        self.interpreter_writer(&format!("{}", self.object), &mut std::io::stdout());
-    }
-
-    pub fn interpreter_writer(&mut self, content: &str, mut writer: impl std::io::Write) {
-        
-        match writeln!(&mut writer, "{}", content) {
-            Ok(_) => {},
-            Err(error) => {panic!("Error in writeln! interpreter_writer: {}", error)}
+        match writeln!(&mut writer, "{}", self.object) {
+            Ok(_) => {}
+            Err(error) => panic!("Error in writeln! interpreter_writer: {}", error),
         }
-
     }
 }
 
@@ -168,4 +164,3 @@ impl Visitor for Interpreter {
         }
     }
 }
-
