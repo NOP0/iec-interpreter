@@ -88,7 +88,7 @@ enum Object {
 pub struct Interpreter {
     parser: Parser,
     object: i32,
-    global_scope: HashMap<String, i32>,
+    pub global_scope: HashMap<String, i32>,
 }
 
 impl Interpreter {

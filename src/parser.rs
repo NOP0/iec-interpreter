@@ -1,3 +1,5 @@
+use log::trace;
+
 use crate::ast::{
     Assignment, BinaryOp, CompoundStatement, Node, Num, Statement, UnaryOp, Variable,
 };
@@ -19,7 +21,16 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Node {
-        self.expr()
+        let node : Node;
+        match self.current_token {
+            Token::Program => {
+                node = self.program();
+            }
+            _ => {
+                node = self.expr();
+            }
+        }
+        node
     }
 
     fn eat(&mut self, token: Token) {
@@ -60,7 +71,7 @@ impl Parser {
                 node = self.variable();
                 self.eat(Token::Id("".to_string()));
             }
-            _ => panic!("Unexpected token in factor"),
+            _ => panic!("Unexpected token in factor: {:?}", self.current_token),
         }
         node
     }
@@ -162,6 +173,7 @@ impl Parser {
         self.eat(Token::Program);
         let node = self.compound_statement();
         self.eat(Token::EndProgram);
+        trace!("Program node");
         node
     }
 }

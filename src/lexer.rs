@@ -24,7 +24,7 @@ impl Lexer {
     fn id(&mut self) -> Token {
         let mut result = "".to_string();
         while let Some(ch) = self.current_char {
-            if ch.is_alphanumeric() {
+            if ch.is_alphanumeric() || ch =='_' {
                 result.push(ch);
                 self.advance();
             } else {
@@ -124,7 +124,7 @@ impl Lexer {
                 token = Some(Token::Rparen);
                 break;
             } else {
-                panic!();
+                panic!("Unexpected char in Lexer: {}", ch);
             }
         }
         token

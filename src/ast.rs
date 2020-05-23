@@ -43,7 +43,7 @@ impl Variable {
                 token: token,
                 id: id,
             },
-            _ => panic!("Wrong token in Variable constructor"),
+            _ => panic!("Wrong token in Variable constructor: {:?}", token),
         }
     }
 }
