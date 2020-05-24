@@ -1,0 +1,3 @@
+PROGRAM
+    1+1
+END_PROGRAM
