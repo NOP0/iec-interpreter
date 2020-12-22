@@ -1,6 +1,5 @@
+use log::trace;
 use std::collections::HashMap;
-//use std::io::prelude::*;
-//use std::io::{Write};
 
 use crate::ast::{
     Assignment, BinaryOp, CompoundStatement, Node, Num, Statement, UnaryOp, Variable,
@@ -101,6 +100,7 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self) {
+        trace!{"Start interpreting"}
         self.interpreter_writer(&mut std::io::stdout());
     }
 

@@ -1,3 +1,5 @@
+use log::trace;
+
 use crate::token::Token;
 use std::collections::HashMap;
 pub struct Lexer {
@@ -35,6 +37,7 @@ impl Lexer {
         if self.reserved_keywords.contains_key(&result) {
             self.reserved_keywords.get(&result).unwrap().clone()
         } else {
+            trace!("Id token: {}", result);
             Token::Id(result)
         }
     }
@@ -87,40 +90,49 @@ impl Lexer {
             } else if ch == ':' && self.peek() == Some('=') {
                 self.advance();
                 self.advance();
+                trace!("Token::Assign");
                 token = Some(Token::Assign);
                 break;
             } else if ch == ';' {
                 self.advance();
+                trace!("Token::Semicolon");
                 token = Some(Token::Semicolon);
                 break;
             } else if ch.is_whitespace() {
                 self.skip_whitespace();
                 continue;
             } else if ch.is_digit(10) {
+                trace!("Token::Integer({})", self.integer());
                 token = Some(Token::Integer(self.integer()));
                 break;
             } else if ch == '+' {
                 self.advance();
+                trace!("Token::Plus");
                 token = Some(Token::Plus);
                 break;
             } else if ch == '-' {
                 self.advance();
+                trace!("Token::Minus");
                 token = Some(Token::Minus);
                 break;
             } else if ch == '*' {
                 self.advance();
+                trace!("Token::Mul");
                 token = Some(Token::Mul);
                 break;
             } else if ch == '/' {
                 self.advance();
+                trace!("Token::Div");
                 token = Some(Token::Div);
                 break;
             } else if ch == '(' {
                 self.advance();
+                trace!("Token::Lparen");
                 token = Some(Token::Lparen);
                 break;
             } else if ch == ')' {
                 self.advance();
+                trace!("Token::Rparen");
                 token = Some(Token::Rparen);
                 break;
             } else {

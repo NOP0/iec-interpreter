@@ -21,6 +21,7 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> Node {
+        trace!("Starting parse");
         let node : Node;
         match self.current_token {
             Token::Program => {
@@ -34,6 +35,7 @@ impl Parser {
     }
 
     fn eat(&mut self, token: Token) {
+        trace!("Consumed {:?}-token", token);
         if Token::variant_eq(token.clone(), &self.current_token) {
             if let Some(token) = self.lexer.get_next_token() {
                 self.current_token = token;
@@ -96,6 +98,7 @@ impl Parser {
     }
 
     fn expr(&mut self) -> Node {
+        trace!("Entering expression");
         let mut node = self.term();
 
         while (self.current_token == Token::Plus) | (self.current_token == Token::Minus) {
@@ -120,6 +123,7 @@ impl Parser {
 
     fn variable(&mut self) -> Node {
         let node = Node::Variable(Variable::new(self.current_token.clone()));
+        self.eat(Token::Id("".to_string()));
         node
     }
     fn assignment(&mut self) -> Node {
@@ -159,6 +163,7 @@ impl Parser {
     }
 
     fn compound_statement(&mut self) -> Node {
+        trace!("Entering compound statement!");
         let nodes = self.statement_list();
         let mut compound_statement = CompoundStatement::new();
         for node in nodes {
@@ -170,15 +175,14 @@ impl Parser {
     }
 
     fn program(&mut self) -> Node {
+        trace!("Entering program");
         self.eat(Token::Program);
         let node = self.compound_statement();
         self.eat(Token::EndProgram);
-        trace!("Program node");
         node
     }
 }
 
-#[test]
 #[test]
 fn parse_addition() {
     let text = "1+2".to_string();
@@ -190,3 +194,17 @@ fn parse_addition() {
         assert_eq!(binary_op.op, Token::Plus);
     }
 }
+
+#[test]
+fn parse_assignment() {
+    let text = "x := 2".to_string();
+    let lexer = Lexer::new(text);
+    let mut parser = Parser::new(lexer);
+    if let Node::Assignment(assignment) = parser.parse() {
+        assert_eq!(*assignment.left, Node::Variable(Variable::new(Token::Id("x".to_string()))));
+        assert_eq!(*assignment.right, Node::Num(Num::new(Token::Integer(2))));
+        assert_eq!(assignment.op, Token::Assign);
+
+    }
+}
+

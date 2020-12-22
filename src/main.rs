@@ -1,3 +1,5 @@
+use log::{info};
+
 use std::io::{stdin, stdout, Write};
 use std::{fs, env};
 
@@ -12,6 +14,8 @@ use lexer::Lexer;
 use parser::Parser;
 
 fn main() -> std::io::Result<()> {
+
+    env_logger::init();
 
     let args: Vec<String> = env::args().collect();
 
@@ -34,7 +38,6 @@ fn main() -> std::io::Result<()> {
         2 => { // Program argument
             let path = std::path::PathBuf::from(args[1].clone());
             let text = fs::read_to_string(path.clone()).expect(&format!("Could not open file {:?}", path));
-           // let text = fs::read_to_string("../../tests/addition.st").expect("Could not open file");
             let lexer = Lexer::new(text);
             let parser = Parser::new(lexer);
             let mut interpreter = Interpreter::new(parser);
@@ -62,6 +65,7 @@ fn interpret_addition() {
 
 #[test]
 fn interpret_program() {
+    
     let _ = env_logger::builder().is_test(true).try_init();
     let text = 
     "PROGRAM
@@ -76,7 +80,7 @@ fn interpret_program() {
 
     interpreter.interpreter_writer(&mut buffer);
 
-    assert_eq!(buffer[0], b'2');
+    assert_eq!(buffer[0], b'3');
 
 }
 
@@ -84,6 +88,9 @@ fn interpret_program() {
 
 #[test]
 fn interpret_program_with_assignment() {
+
+    let _ = env_logger::builder().is_test(true).try_init();
+
     let text = 
     "PROGRAM
         x := 2;
