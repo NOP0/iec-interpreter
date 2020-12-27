@@ -1,3 +1,3 @@
-PROGRAM
-    x := 2;
+PROGRAM 
+    x := 2; 
 END_PROGRAM

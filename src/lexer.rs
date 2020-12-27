@@ -14,7 +14,7 @@ impl Lexer {
         let mut reserved_keywords: HashMap<String, Token> = HashMap::new();
         reserved_keywords.insert("PROGRAM".to_string(), Token::Program);
         reserved_keywords.insert("END_PROGRAM".to_string(), Token::EndProgram);
-
+        trace!("New Lexer");
         Lexer {
             text: text.chars().collect(),
             pos: 0,
@@ -35,9 +35,10 @@ impl Lexer {
         }
 
         if self.reserved_keywords.contains_key(&result) {
+            trace!("Reserved keyword {}", result);
             self.reserved_keywords.get(&result).unwrap().clone()
         } else {
-            trace!("Id token: {}", result);
+            trace!("Token::Id({})", result);
             Token::Id(result)
         }
     }
@@ -87,6 +88,7 @@ impl Lexer {
         while let Some(ch) = self.current_char {
             if ch.is_alphabetic() {
                 token = Some(self.id());
+                break;
             } else if ch == ':' && self.peek() == Some('=') {
                 self.advance();
                 self.advance();
@@ -100,6 +102,7 @@ impl Lexer {
                 break;
             } else if ch.is_whitespace() {
                 self.skip_whitespace();
+                trace!("Skipping whitespace");
                 continue;
             } else if ch.is_digit(10) {
                 trace!("Token::Integer({})", self.integer());

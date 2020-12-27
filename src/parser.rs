@@ -14,6 +14,7 @@ pub struct Parser {
 impl Parser {
     pub fn new(mut lexer: Lexer) -> Parser {
         let current_token = lexer.get_next_token().expect("No first token");
+        trace!("New Parser, first token is: {:?}", current_token);
         Parser {
             lexer,
             current_token,
@@ -49,6 +50,7 @@ impl Parser {
     }
 
     fn factor(&mut self) -> Node {
+        trace!("Entering factor");
         let node: Node;
 
         match self.current_token {
@@ -79,6 +81,7 @@ impl Parser {
     }
 
     fn term(&mut self) -> Node {
+        trace!("Entering term");
         let mut node = self.factor();
 
         while (self.current_token == Token::Mul) | (self.current_token == Token::Div) {
@@ -98,7 +101,7 @@ impl Parser {
     }
 
     fn expr(&mut self) -> Node {
-        trace!("Entering expression");
+        trace!("Entering expr");
         let mut node = self.term();
 
         while (self.current_token == Token::Plus) | (self.current_token == Token::Minus) {
@@ -122,11 +125,13 @@ impl Parser {
     }
 
     fn variable(&mut self) -> Node {
+        trace!("Entering variable");
         let node = Node::Variable(Variable::new(self.current_token.clone()));
         self.eat(Token::Id("".to_string()));
         node
     }
     fn assignment(&mut self) -> Node {
+        trace!("Entering assignment");
         let left = self.variable();
         let token = self.current_token.clone();
         self.eat(Token::Assign);
@@ -135,6 +140,7 @@ impl Parser {
     }
 
     fn statement(&mut self) -> Node {
+        trace!("Entering statement");
         let node: Node;
         match self.current_token {
             Token::Program => {
@@ -152,6 +158,7 @@ impl Parser {
     }
 
     fn statement_list(&mut self) -> Vec<Node> {
+        trace!("Entering statement list");
         let mut list: Vec<Node> = Vec::new();
         list.push(self.statement());
 
@@ -163,7 +170,7 @@ impl Parser {
     }
 
     fn compound_statement(&mut self) -> Node {
-        trace!("Entering compound statement!");
+        trace!("Entering compound statement");
         let nodes = self.statement_list();
         let mut compound_statement = CompoundStatement::new();
         for node in nodes {
