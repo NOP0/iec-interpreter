@@ -12,6 +12,7 @@ pub enum Token {
     Assign,
     Semicolon,
     Id(String),
+    #[allow(dead_code)]
     NoOp,
 }
 

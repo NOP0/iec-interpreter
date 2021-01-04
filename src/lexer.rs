@@ -26,7 +26,7 @@ impl Lexer {
     fn id(&mut self) -> Token {
         let mut result = "".to_string();
         while let Some(ch) = self.current_char {
-            if ch.is_alphanumeric() || ch =='_' {
+            if ch.is_alphanumeric() || ch == '_' {
                 result.push(ch);
                 self.advance();
             } else {
@@ -72,6 +72,7 @@ impl Lexer {
                 break;
             }
         }
+
         result.parse().unwrap()
     }
 
@@ -105,8 +106,9 @@ impl Lexer {
                 trace!("Skipping whitespace");
                 continue;
             } else if ch.is_digit(10) {
-                trace!("Token::Integer({})", self.integer());
-                token = Some(Token::Integer(self.integer()));
+                let integer = self.integer();
+                trace!("Token::Integer({})", integer);
+                token = Some(Token::Integer(integer));
                 break;
             } else if ch == '+' {
                 self.advance();

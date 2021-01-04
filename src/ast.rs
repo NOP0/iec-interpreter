@@ -6,15 +6,8 @@ pub enum Node {
     Num(Num),
     Assignment(Assignment),
     Variable(Variable),
-    Statement(Statement),
     CompoundStatement(CompoundStatement),
     NoOp,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Statement {
-    NoOp,
-    Assignment(Assignment),
 }
 
 #[derive(Debug, PartialEq)]

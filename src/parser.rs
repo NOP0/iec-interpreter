@@ -1,8 +1,6 @@
 use log::trace;
 
-use crate::ast::{
-    Assignment, BinaryOp, CompoundStatement, Node, Num, Statement, UnaryOp, Variable,
-};
+use crate::ast::{Assignment, BinaryOp, CompoundStatement, Node, Num, UnaryOp, Variable};
 use crate::lexer::Lexer;
 use crate::token::Token;
 
@@ -23,7 +21,7 @@ impl Parser {
 
     pub fn parse(&mut self) -> Node {
         trace!("Starting parse");
-        let node : Node;
+        let node: Node;
         match self.current_token {
             Token::Program => {
                 node = self.program();
@@ -32,6 +30,7 @@ impl Parser {
                 node = self.expr();
             }
         }
+        trace!("Parse end");
         node
     }
 
@@ -120,7 +119,6 @@ impl Parser {
         node
     }
     fn no_op(&mut self) -> Node {
-        self.eat(Token::NoOp);
         Node::NoOp
     }
 
@@ -147,9 +145,8 @@ impl Parser {
                 node = self.compound_statement();
             }
 
-            Token::Id(_) => {
-                node = self.assignment();
-            }
+            Token::Id(_) => node = self.assignment(),
+
             _ => {
                 node = self.no_op();
             }
@@ -204,14 +201,15 @@ fn parse_addition() {
 
 #[test]
 fn parse_assignment() {
-    let text = "x := 2".to_string();
+    let text = "PROGRAM x := 3 END_PROGRAM".to_string();
     let lexer = Lexer::new(text);
     let mut parser = Parser::new(lexer);
     if let Node::Assignment(assignment) = parser.parse() {
-        assert_eq!(*assignment.left, Node::Variable(Variable::new(Token::Id("x".to_string()))));
-        assert_eq!(*assignment.right, Node::Num(Num::new(Token::Integer(2))));
+        assert_eq!(
+            *assignment.left,
+            Node::Variable(Variable::new(Token::Id("x".to_string())))
+        );
+        assert_eq!(*assignment.right, Node::Num(Num::new(Token::Integer(3))));
         assert_eq!(assignment.op, Token::Assign);
-
     }
 }
-

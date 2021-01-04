@@ -1,9 +1,7 @@
 use log::trace;
 use std::collections::HashMap;
 
-use crate::ast::{
-    Assignment, BinaryOp, CompoundStatement, Node, Num, Statement, UnaryOp, Variable,
-};
+use crate::ast::{Assignment, BinaryOp, CompoundStatement, Node, Num, UnaryOp, Variable};
 
 use crate::parser::Parser;
 use crate::token::Token;
@@ -22,15 +20,6 @@ pub fn walk_assignment<V: Visitor + ?Sized>(visitor: &mut V, assignment: &Assign
     visitor.visit(&assignment.right);
 }
 
-pub fn walk_statement<V: Visitor + ?Sized>(visitor: &mut V, statement: &Statement) {
-    match statement {
-        Statement::NoOp => {}
-        Statement::Assignment(assignment) => {
-            visitor.visit_assignment(assignment);
-        }
-    }
-}
-
 pub trait Visitor {
     fn visit(&mut self, node: &Node) {
         match node {
@@ -39,7 +28,6 @@ pub trait Visitor {
             Node::Num(num) => self.visit_num(&num),
             Node::Assignment(assignment) => self.visit_assignment(&assignment),
             Node::Variable(variable) => self.visit_variable(&variable),
-            Node::Statement(statement) => self.visit_statement(&statement),
             Node::CompoundStatement(compound_statement) => {
                 self.visit_compound_statement(&compound_statement)
             }
@@ -59,10 +47,6 @@ pub trait Visitor {
         walk_assignment(self, assignment);
     }
 
-    fn visit_statement(&mut self, statement: &Statement) {
-        walk_statement(self, statement);
-    }
-
     #[allow(unused_variables)]
     fn visit_num(&mut self, num: &Num) {}
 
@@ -70,12 +54,16 @@ pub trait Visitor {
     fn visit_variable(&mut self, variable: &Variable) {}
 
     fn visit_compound_statement(&mut self, compound_statement: &CompoundStatement) {
-        for statement in &compound_statement.statements {
-            match statement {
-                Node::Statement(statement) => {
-                    self.visit_statement(&statement);
+        trace!("Visiting compound statement");
+        for node in &compound_statement.statements {
+            match node {
+                Node::Assignment(assignment) => {
+                    self.visit_assignment(&assignment);
                 }
-                _ => {}
+                Node::NoOp => trace!("Visited NoOp!"),
+                _ => {
+                    panic!("No valid node found in statement list {:?}", node);
+                }
             }
         }
     }
@@ -100,13 +88,15 @@ impl Interpreter {
     }
 
     pub fn interpret(&mut self) {
-        trace!{"Start interpreting"}
         self.interpreter_writer(&mut std::io::stdout());
     }
 
     pub fn interpreter_writer(&mut self, mut writer: &mut impl std::io::Write) {
+        trace! {"Start interpreting"}
         let tree = self.parser.parse();
+        trace!("Start visiting");
         self.visit(&tree);
+        trace!("End visiting");
 
         match writeln!(&mut writer, "{}", self.object) {
             Ok(_) => {}
@@ -117,6 +107,7 @@ impl Interpreter {
 
 impl Visitor for Interpreter {
     fn visit_unary_op(&mut self, unary_op: &UnaryOp) {
+        trace!("Visiting unary op");
         self.visit(&unary_op.expr);
         match unary_op.op {
             Token::Plus => {}
@@ -125,6 +116,7 @@ impl Visitor for Interpreter {
         }
     }
     fn visit_binary_op(&mut self, binary_op: &BinaryOp) {
+        trace!("Visiting binary op");
         let lhs: i32;
         let rhs: i32;
         self.visit(&binary_op.left);
@@ -142,13 +134,16 @@ impl Visitor for Interpreter {
     }
 
     fn visit_num(&mut self, num: &Num) {
+        trace!("Visiting num");
         self.object = num.value;
     }
 
     fn visit_assignment(&mut self, assignment: &Assignment) {
+        trace!("Visiting assignment");
         self.visit(&assignment.right);
         match &*assignment.left {
             Node::Variable(variable) => {
+                trace!("Variable {:?}, inserted in global scope", variable);
                 self.global_scope.insert(variable.id.clone(), self.object);
             }
 
@@ -157,6 +152,7 @@ impl Visitor for Interpreter {
     }
 
     fn visit_variable(&mut self, variable: &Variable) {
+        trace!("Visiting variable");
         if let Some(value) = self.global_scope.get(&variable.id) {
             self.object = *value;
         } else {
